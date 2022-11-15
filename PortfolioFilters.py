@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import pandas_datareader as pdr
 from pandas import DataFrame
+from numpy import std
 from sys import exit
 from asyncio import run
 from warnings import filterwarnings
@@ -81,3 +82,19 @@ class IncomeTickerFilter(MakeBetaPositivePortfolio):
             pos += 1
         return filter_result
 
+
+class VolatilityTickerFilter(MakeBetaPositivePortfolio):
+    def __init__(self, tickers_list, date_start, date_end):
+        super().__init__(tickers_list, date_start, date_end)
+
+    def filter(self):
+        filter_result, pos = [], 0
+        run(self.parsing_tickers_list_price(self.tickers_list, self.date_start, self.date_end))
+        values = [std(self.tickers_dict_price[key]['SMA(5)']) for key in self.tickers_dict_price.keys()]
+        mean_std = sum(values) / len(values)
+        for key in self.tickers_dict_price.keys():
+            print(f'std({key}) = {values[pos]}, --- mean_std = {mean_std}')
+            if values[pos] < mean_std:
+                filter_result.append(key)
+            pos += 1
+        return filter_result

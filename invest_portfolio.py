@@ -2,7 +2,7 @@ import asyncio
 import matplotlib.pyplot as plt
 
 from invest_portfolio_models import MarkovModel, SharpModel, StatModel
-from PortfolioFilters import MakeBetaPositivePortfolio, IncomeTickerFilter
+from PortfolioFilters import MakeBetaPositivePortfolio, IncomeTickerFilter, VolatilityTickerFilter
 from pandas import DataFrame
 from threading import Thread, ThreadError
 from os import mkdir, chdir, path
@@ -107,6 +107,17 @@ def main():
         exit(0)
     if filter_method == 2:
         tickers = IncomeTickerFilter(tickers, date_start, date_end).income_filter()
+        asyncio.run(get_df_close_tickers(tickers, date_start, date_end))
+        print("\nПоследние значения цен по тикерам.")
+        print(DF_CLOSE_TICKERS.tail(), '\n')
+        thread_realise(MarkovModel(DF_CLOSE_TICKERS).__call__())
+        print('\n')
+        thread_realise(SharpModel(DF_CLOSE_TICKERS).__call__())
+        thread_realise(StatModel(DF_CLOSE_TICKERS, tickers).__call__())
+        print('\n\n')
+        exit(0)
+    if filter_method == 3:
+        tickers = VolatilityTickerFilter(tickers, date_start, date_end).filter()
         asyncio.run(get_df_close_tickers(tickers, date_start, date_end))
         print("\nПоследние значения цен по тикерам.")
         print(DF_CLOSE_TICKERS.tail(), '\n')
